@@ -34,37 +34,29 @@ impl Args {
 }
 
 pub fn run(args: Args) -> Result<()> {
-    let plural = if args.time > 1 {
-        "s"
-    } else {
-        ""
-    };
-
+    let plural = if args.time > 1 { "s" } else { "" };
     let summary = format!("Reminder in {} minute{}", args.time, plural);
     let message = format!("Note: {}", args.msg);
-
     let time = Duration::from_secs(args.time);
 
-    Notification::new()
-	.summary(&summary)
-	.body(&message)
-	.icon("time")
-        .appname("RemindMeIn")
-	.show()?;
-
+    notify(&summary, &message)?;
     sleep(time * 60);
-
-    Notification::new()
-	.summary("Reminder")
-	.body(&args.msg)
-	.icon("time")
-        .appname("RemindMeIn")
-	.show()?;
+    notify("Reminder", &args.msg)?;
 
     Command::new("ffplay")
         .args(&[AUDIOPATH, "-nodisp", "-autoexit"])
         .stdout(Stdio::null())
         .output()?;
 
+    Ok(())
+}
+
+fn notify(summary: &str, message: &str) -> Result<()> {
+    Notification::new()
+	.summary(summary)
+	.body(message)
+	.icon("time")
+        .appname("RemindMeIn")
+        .show()?;
     Ok(())
 }
